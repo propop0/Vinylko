@@ -1,7 +1,8 @@
 var builder = WebApplication.CreateBuilder(args);
 
 Application.ConfigureServices.AddApplicationServices(builder.Services);
-Infrastructure.Persistence.ConfigurePersistenceServices.AddPersistenceServices(builder.Services, builder.Configuration);
+Infrastructure.ConfigureInfrastructureServices.AddInfrastructureServices(builder.Services, builder.Configuration);
+Api.Modules.SetupModule.AddApiModule(builder.Services);
 
 builder.Services.AddControllers(options =>
 {
