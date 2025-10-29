@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 var builder = WebApplication.CreateBuilder(args);
 
 Application.ConfigureServices.AddApplicationServices(builder.Services);
@@ -32,3 +34,7 @@ using (var scope = app.Services.CreateScope())
 app.MapControllers();
 
 app.Run();
+
+// Make Program accessible to tests
+[ExcludeFromCodeCoverage]
+public partial class Program { }
