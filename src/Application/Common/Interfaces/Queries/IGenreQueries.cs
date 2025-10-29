@@ -10,6 +10,7 @@ public interface IGenreQueries
 {
     Task<IReadOnlyList<Genre>> GetAllAsync(CancellationToken cancellationToken);
     Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<Genre?> GetByNameAsync(string name, CancellationToken cancellationToken);
 }
 
 

@@ -13,6 +13,7 @@ public interface IArtistRepository
     Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task UpdateAsync(Artist entity, CancellationToken cancellationToken);
     Task DeleteAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> HasVinylRecordsAsync(Guid artistId, CancellationToken cancellationToken);
 }
 
 

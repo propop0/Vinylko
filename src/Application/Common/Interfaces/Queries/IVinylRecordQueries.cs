@@ -12,6 +12,7 @@ public interface IVinylRecordQueries
     Task<IReadOnlyList<VinylRecord>> GetByArtistIdAsync(Guid artistId, CancellationToken cancellationToken);
     Task<IReadOnlyList<VinylRecord>> GetByGenreIdAsync(Guid genreId, CancellationToken cancellationToken);
     Task<VinylRecord?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<VinylRecord>> GetByStatusAsync(VinylRecordStatus status, CancellationToken cancellationToken);
 }
 
 

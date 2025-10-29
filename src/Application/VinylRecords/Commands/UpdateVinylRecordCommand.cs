@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Application.VinylRecords.Commands
 {
-    public record UpdateVinylRecordCommand : IRequest
+    public record UpdateVinylRecordCommand : IRequest<VinylRecord>
     {
         public required Guid Id { get; init; }
         public required string Title { get; init; }
@@ -17,7 +17,7 @@ namespace Application.VinylRecords.Commands
         public string? Description { get; init; }
     }
 
-    public class UpdateVinylRecordCommandHandler : IRequestHandler<UpdateVinylRecordCommand>
+    public class UpdateVinylRecordCommandHandler : IRequestHandler<UpdateVinylRecordCommand, VinylRecord>
     {
         private readonly IVinylRecordRepository _vinylRecordRepository;
 
@@ -26,13 +26,14 @@ namespace Application.VinylRecords.Commands
             _vinylRecordRepository = vinylRecordRepository;
         }
 
-        public async Task Handle(UpdateVinylRecordCommand request, CancellationToken cancellationToken)
+        public async Task<VinylRecord> Handle(UpdateVinylRecordCommand request, CancellationToken cancellationToken)
         {
             var existing = await _vinylRecordRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (existing is null) return;
+            if (existing is null) throw new InvalidOperationException("Vinyl record not found");
 
             existing.UpdateDetails(request.Title, request.Genre, request.ReleaseYear, request.Price, request.Description);
             await _vinylRecordRepository.UpdateAsync(existing, cancellationToken);
+            return existing;
         }
     }
 }

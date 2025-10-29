@@ -10,6 +10,7 @@ public interface IArtistQueries
 {
     Task<IReadOnlyList<Artist>> GetAllAsync(CancellationToken cancellationToken);
     Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Artist>> GetByCountryAsync(string country, CancellationToken cancellationToken);
 }
 
 

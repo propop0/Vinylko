@@ -22,6 +22,13 @@ namespace Application.Genres.Commands
 
         public async Task Handle(DeleteGenreCommand request, CancellationToken cancellationToken)
         {
+            // Check if genre has vinyl records before attempting deletion
+            var hasVinylRecords = await _genreRepository.HasVinylRecordsAsync(request.Id, cancellationToken);
+            if (hasVinylRecords)
+            {
+                throw new InvalidOperationException("Cannot delete genre. There are vinyl records associated with this genre. Please delete or reassign the vinyl records first.");
+            }
+
             await _genreRepository.DeleteAsync(request.Id, cancellationToken);
         }
     }

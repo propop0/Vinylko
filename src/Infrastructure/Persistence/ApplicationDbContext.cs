@@ -1,7 +1,8 @@
 using System.Reflection;
-using Domain.Equipments;
-using Domain.MaintenanceSchedules;
-using Domain.WorkOrders;
+using Domain.Artists;
+using Domain.Genres;
+using Domain.Sales;
+using Domain.VinylRecords;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence;
@@ -12,9 +13,10 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Equipment> Equipments { get; init; } = null!;
-    public DbSet<MaintenanceSchedule> MaintenanceSchedules { get; init; } = null!;
-    public DbSet<WorkOrder> WorkOrders { get; init; } = null!;
+    public DbSet<Artist> Artists { get; init; } = null!;
+    public DbSet<Genre> Genres { get; init; } = null!;
+    public DbSet<VinylRecord> VinylRecords { get; init; } = null!;
+    public DbSet<Sale> Sales { get; init; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

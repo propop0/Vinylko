@@ -24,7 +24,6 @@ public static class ConfigurePersistenceServices
             .UseNpgsql( 
                 dataSource,
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
-            .UseSnakeCaseNamingConvention()
             .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
 
         services.AddScoped<ApplicationDbContextInitialiser>();
@@ -33,16 +32,20 @@ public static class ConfigurePersistenceServices
 
     private static void AddRepositories(this IServiceCollection services)
     {
-        services.AddScoped<EquipmentRepository>();
-        services.AddScoped<IEquipmentRepository>(provider => provider.GetRequiredService<EquipmentRepository>());
-        services.AddScoped<IEquipmentQueries>(provider => provider.GetRequiredService<EquipmentRepository>());
+        services.AddScoped<ArtistRepository>();
+        services.AddScoped<IArtistRepository>(provider => provider.GetRequiredService<ArtistRepository>());
+        services.AddScoped<IArtistQueries>(provider => provider.GetRequiredService<ArtistRepository>());
 
-        services.AddScoped<MaintenanceScheduleRepository>();
-        services.AddScoped<IMaintenanceScheduleRepository>(provider => provider.GetRequiredService<MaintenanceScheduleRepository>());
-        services.AddScoped<IMaintenanceScheduleQueries>(provider => provider.GetRequiredService<MaintenanceScheduleRepository>());
+        services.AddScoped<GenreRepository>();
+        services.AddScoped<IGenreRepository>(provider => provider.GetRequiredService<GenreRepository>());
+        services.AddScoped<IGenreQueries>(provider => provider.GetRequiredService<GenreRepository>());
 
-        services.AddScoped<WorkOrderRepository>();
-        services.AddScoped<IWorkOrderRepository>(provider => provider.GetRequiredService<WorkOrderRepository>());
-        services.AddScoped<IWorkOrderQueries>(provider => provider.GetRequiredService<WorkOrderRepository>());
+        services.AddScoped<VinylRecordRepository>();
+        services.AddScoped<IVinylRecordRepository>(provider => provider.GetRequiredService<VinylRecordRepository>());
+        services.AddScoped<IVinylRecordQueries>(provider => provider.GetRequiredService<VinylRecordRepository>());
+
+        services.AddScoped<SaleRepository>();
+        services.AddScoped<ISaleRepository>(provider => provider.GetRequiredService<SaleRepository>());
+        services.AddScoped<ISaleQueries>(provider => provider.GetRequiredService<SaleRepository>());
     }
 }

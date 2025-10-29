@@ -13,6 +13,7 @@ public interface IGenreRepository
     Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task UpdateAsync(Genre entity, CancellationToken cancellationToken);
     Task DeleteAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> HasVinylRecordsAsync(Guid genreId, CancellationToken cancellationToken);
 }
 
 
