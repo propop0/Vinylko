@@ -95,18 +95,25 @@ public class VinylRecordsController(IVinylRecordQueries vinylRecordQueries, ISen
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<VinylRecordDto>> Update(Guid id, [FromBody] UpdateVinylRecordDto dto, CancellationToken cancellationToken)
     {
-        var cmd = new UpdateVinylRecordCommand
+        try
         {
-            Id = id,
-            Title = dto.Title,
-            Genre = dto.Genre,
-            ReleaseYear = dto.ReleaseYear,
-            Price = dto.Price,
-            Description = dto.Description
-        };
+            var cmd = new UpdateVinylRecordCommand
+            {
+                Id = id,
+                Title = dto.Title,
+                Genre = dto.Genre,
+                ReleaseYear = dto.ReleaseYear,
+                Price = dto.Price,
+                Description = dto.Description
+            };
 
-        var updated = await sender.Send(cmd, cancellationToken);
-        return VinylRecordDto.FromDomainModel(updated);
+            var updated = await sender.Send(cmd, cancellationToken);
+            return VinylRecordDto.FromDomainModel(updated);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound();
+        }
     }
 
     [HttpPatch("{id:guid}/status")]

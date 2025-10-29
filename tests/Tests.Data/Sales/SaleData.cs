@@ -7,7 +7,7 @@ public static class SaleData
     public static Sale FirstSale(Guid recordId)
     {
         return Sale.New(
-            id: Guid.Parse("sale1111-1111-1111-1111-111111111111"),
+            id: Guid.Parse("11111111-1111-1111-1111-111111111111"),
             saleNumber: "SALE-2024-0001",
             recordId: recordId,
             price: 29.99m,
@@ -20,7 +20,7 @@ public static class SaleData
     public static Sale SecondSale(Guid recordId)
     {
         return Sale.New(
-            id: Guid.Parse("sale2222-2222-2222-2222-222222222222"),
+            id: Guid.Parse("22222222-2222-2222-2222-222222222222"),
             saleNumber: "SALE-2024-0002",
             recordId: recordId,
             price: 34.99m,
@@ -33,7 +33,7 @@ public static class SaleData
     public static Sale ThirdSale(Guid recordId)
     {
         return Sale.New(
-            id: Guid.Parse("sale3333-3333-3333-3333-333333333333"),
+            id: Guid.Parse("33333333-3333-3333-3333-333333333333"),
             saleNumber: "SALE-2024-0003",
             recordId: recordId,
             price: 32.50m,

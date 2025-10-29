@@ -51,18 +51,25 @@ public class ArtistsController(IArtistQueries artistQueries, ISender sender) : C
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ArtistDto>> Update(Guid id, [FromBody] UpdateArtistDto dto, CancellationToken cancellationToken)
     {
-        var cmd = new UpdateArtistCommand
+        try
         {
-            Id = id,
-            Name = dto.Name,
-            Bio = dto.Bio,
-            Country = dto.Country,
-            BirthDate = dto.BirthDate,
-            Website = dto.Website
-        };
+            var cmd = new UpdateArtistCommand
+            {
+                Id = id,
+                Name = dto.Name,
+                Bio = dto.Bio,
+                Country = dto.Country,
+                BirthDate = dto.BirthDate,
+                Website = dto.Website
+            };
 
-        var updated = await sender.Send(cmd, cancellationToken);
-        return ArtistDto.FromDomainModel(updated);
+            var updated = await sender.Send(cmd, cancellationToken);
+            return ArtistDto.FromDomainModel(updated);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound();
+        }
     }
 
     [HttpDelete("{id:guid}")]

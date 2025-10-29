@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -58,6 +59,18 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
     public Task InitializeAsync()
     {
         return _dbContainer.StartAsync();
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var host = base.CreateHost(builder);
+        
+        // Run migrations after host is created but before tests run
+        using var scope = host.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.MigrateAsync().GetAwaiter().GetResult();
+        
+        return host;
     }
 
     public new Task DisposeAsync()

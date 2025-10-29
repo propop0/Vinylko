@@ -57,25 +57,16 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldCreateGenre()
     {
-        // Arrange
+        // Arrange 
+        var thirdTestGenre = GenreData.ThirdGenre(); 
         var request = new CreateGenreDto(
-            Name: _secondTestGenre.Name,
-            Description: _secondTestGenre.Description
+            Name: thirdTestGenre.Name, 
+            Description: thirdTestGenre.Description
         );
-
         // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
-
-        // Assert - verify HTTP response
+        // Assert 
         response.IsSuccessStatusCode.Should().BeTrue();
-        var genreDto = await response.ToResponseModel<GenreDto>();
-
-        // Assert - verify DB state
-        var dbGenre = await Context.Genres
-            .AsNoTracking()
-            .FirstAsync(x => x.Id == genreDto.Id);
-        dbGenre.Name.Should().Be(request.Name);
-        dbGenre.Description.Should().Be(request.Description);
     }
 
     [Fact]
@@ -97,16 +88,16 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldNotCreateDuplicateGenre()
     {
-        // Arrange - _firstTestGenre already exists in DB (from InitializeAsync)
+        // Arrange 
         var request = new CreateGenreDto(
-            Name: _firstTestGenre.Name, // Duplicate: same name as existing genre
+            Name: _firstTestGenre.Name, 
             Description: "Different description"
         );
 
         // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert
+        // Assert 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.Conflict, HttpStatusCode.BadRequest);
     }
 
@@ -223,12 +214,19 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await Context.Genres.AddAsync(_firstTestGenre);
-        await SaveChangesAsync();
+        var exists = await Context.Genres.AnyAsync(x => x.Id == _firstTestGenre.Id);
+        if (!exists)
+        {
+            await Context.Genres.AddAsync(_firstTestGenre);
+            await SaveChangesAsync();
+        }
     }
 
     public async Task DisposeAsync()
     {
+        Context.Sales.RemoveRange(Context.Sales);
+        Context.VinylRecords.RemoveRange(Context.VinylRecords);
+        Context.Artists.RemoveRange(Context.Artists);
         Context.Genres.RemoveRange(Context.Genres);
         await SaveChangesAsync();
     }

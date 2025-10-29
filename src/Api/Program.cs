@@ -28,7 +28,11 @@ using (var scope = app.Services.CreateScope())
 {
     var initialiser = scope.ServiceProvider.GetRequiredService<Infrastructure.Persistence.ApplicationDbContextInitialiser>();
     await initialiser.InitialiseAsync();
-    await initialiser.SeedAsync();
+    // SeedAsync() викликається тільки для Development environment
+    if (app.Environment.IsDevelopment())
+    {
+        await initialiser.SeedAsync();
+    }
 }
 
 app.MapControllers();

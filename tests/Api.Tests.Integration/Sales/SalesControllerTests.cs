@@ -131,7 +131,7 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
             .CountAsync();
         saleNumberCount.Should().Be(1);
         
-    // Примітка: тестування через апі напряму на дублікат SaleNumber неможливе, 
+    // тестування через апі напряму на дублікат SaleNumber неможливе, 
     // бо сейлнамбер генерується автоматично з часовим штампом і він унікальний 
     }
 
@@ -303,16 +303,39 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await Context.Artists.AddAsync(_testArtist);
-        await Context.VinylRecords.AddAsync(_testVinylRecord);
-        await Context.Sales.AddAsync(_firstTestSale);
+        // Check if artist already exists
+        var artistExists = await Context.Artists.AnyAsync(x => x.Id == _testArtist.Id);
+        if (!artistExists)
+        {
+            await Context.Artists.AddAsync(_testArtist);
+        }
+        
+        // Check if vinyl record already exists
+        var vinylRecordExists = await Context.VinylRecords.AnyAsync(x => x.Id == _testVinylRecord.Id);
+        if (!vinylRecordExists)
+        {
+            await Context.VinylRecords.AddAsync(_testVinylRecord);
+        }
+        
+        // Check if sale already exists
+        var saleExists = await Context.Sales.AnyAsync(x => x.Id == _firstTestSale.Id);
+        if (!saleExists)
+        {
+            await Context.Sales.AddAsync(_firstTestSale);
+        }
+        
         await SaveChangesAsync();
     }
 
     public async Task DisposeAsync()
     {
+        // Delete in correct order to avoid foreign key violations
         Context.Sales.RemoveRange(Context.Sales);
+        await SaveChangesAsync();
+        
         Context.VinylRecords.RemoveRange(Context.VinylRecords);
+        await SaveChangesAsync();
+        
         Context.Artists.RemoveRange(Context.Artists);
         await SaveChangesAsync();
     }

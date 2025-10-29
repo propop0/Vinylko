@@ -307,14 +307,43 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await Context.Artists.AddAsync(_testArtist);
-        await Context.VinylRecords.AddAsync(_firstTestVinylRecord);
+        // Check if artist already exists
+        var artistExists = await Context.Artists.AnyAsync(x => x.Id == _testArtist.Id);
+        if (!artistExists)
+        {
+            await Context.Artists.AddAsync(_testArtist);
+        }
+        
+        // Check if vinyl record already exists
+        var vinylRecordExists = await Context.VinylRecords.AnyAsync(x => x.Id == _firstTestVinylRecord.Id);
+        if (!vinylRecordExists)
+        {
+            await Context.VinylRecords.AddAsync(_firstTestVinylRecord);
+        }
+        
         await SaveChangesAsync();
     }
 
     public async Task DisposeAsync()
     {
+        // Delete in correct order to avoid foreign key violations
+        var vinylRecordIds = Context.VinylRecords.Select(v => v.Id).ToList();
+        
+        // First delete Sales that reference these VinylRecords
+        var sales = await Context.Sales
+            .Where(s => vinylRecordIds.Contains(s.RecordId))
+            .ToListAsync();
+        if (sales.Any())
+        {
+            Context.Sales.RemoveRange(sales);
+            await SaveChangesAsync();
+        }
+        
+        // Then delete VinylRecords
         Context.VinylRecords.RemoveRange(Context.VinylRecords);
+        await SaveChangesAsync();
+        
+        // Finally delete Artists
         Context.Artists.RemoveRange(Context.Artists);
         await SaveChangesAsync();
     }
