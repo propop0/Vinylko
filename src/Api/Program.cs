@@ -24,14 +24,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var initialiser = scope.ServiceProvider.GetRequiredService<Infrastructure.Persistence.ApplicationDbContextInitialiser>();
-    await initialiser.InitialiseAsync();
-    // SeedAsync() викликається тільки для Development environment
-    if (app.Environment.IsDevelopment())
+    using (var scope = app.Services.CreateScope())
     {
-        await initialiser.SeedAsync();
+        var initialiser = scope.ServiceProvider.GetRequiredService<Infrastructure.Persistence.ApplicationDbContextInitialiser>();
+        await initialiser.InitialiseAsync();
+        if (app.Environment.IsDevelopment())
+        {
+            await initialiser.SeedAsync();
+        }
     }
 }
 
@@ -39,6 +41,5 @@ app.MapControllers();
 
 app.Run();
 
-// Make Program accessible to tests
 [ExcludeFromCodeCoverage]
 public partial class Program { }

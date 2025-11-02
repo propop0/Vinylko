@@ -39,7 +39,6 @@ public class ArtistRepository : IArtistRepository, IArtistQueries
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        // Check if artist has vinyl records before deletion
         var hasVinylRecords = await _context.VinylRecords.AnyAsync(vr => vr.ArtistId == id, cancellationToken);
         if (hasVinylRecords)
         {

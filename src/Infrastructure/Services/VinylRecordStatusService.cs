@@ -16,7 +16,7 @@ public class VinylRecordStatusService : IVinylRecordStatusService
         {
             VinylRecordStatus.InStock => newStatus == VinylRecordStatus.Reserved || newStatus == VinylRecordStatus.Sold,
             VinylRecordStatus.Reserved => newStatus == VinylRecordStatus.InStock || newStatus == VinylRecordStatus.Sold,
-            VinylRecordStatus.Sold => false, // Sold records cannot change status
+            VinylRecordStatus.Sold => false,
             _ => false
         };
     }
@@ -27,7 +27,7 @@ public class VinylRecordStatusService : IVinylRecordStatusService
         {
             VinylRecordStatus.InStock => VinylRecordStatus.Reserved,
             VinylRecordStatus.Reserved => VinylRecordStatus.Sold,
-            VinylRecordStatus.Sold => VinylRecordStatus.Sold, // Already sold
+            VinylRecordStatus.Sold => VinylRecordStatus.Sold, 
             _ => VinylRecordStatus.InStock
         };
     }

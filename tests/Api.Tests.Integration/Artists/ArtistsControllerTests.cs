@@ -237,17 +237,21 @@ public class ArtistsControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        Context.Sales.RemoveRange(Context.Sales);
-        await SaveChangesAsync(); 
-
-        Context.VinylRecords.RemoveRange(Context.VinylRecords);
-        await SaveChangesAsync(); 
-
-        Context.Artists.RemoveRange(Context.Artists);
-        await SaveChangesAsync(); 
+        var artistIds = Context.Artists.Select(a => a.Id).ToList();
         
-        Context.Genres.RemoveRange(Context.Genres);
-        await SaveChangesAsync(); 
+        // Delete VinylRecords that reference these Artists
+        var vinylRecords = await Context.VinylRecords
+            .Where(v => artistIds.Contains(v.ArtistId))
+            .ToListAsync();
+        if (vinylRecords.Any())
+        {
+            Context.VinylRecords.RemoveRange(vinylRecords);
+            await SaveChangesAsync();
+        }
+        
+        // Then delete Artists
+        Context.Artists.RemoveRange(Context.Artists);
+        await SaveChangesAsync();
     }
 }
 

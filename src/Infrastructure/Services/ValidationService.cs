@@ -26,19 +26,19 @@ public class ValidationService : IValidationService
     public bool IsValidWebsite(string website)
     {
         if (string.IsNullOrWhiteSpace(website))
-            return true; // Website is optional
+            return true; 
 
         return WebsiteRegex.IsMatch(website);
     }
 
     public bool IsValidPrice(decimal price)
     {
-        return price > 0 && price <= 999999.99m; // Reasonable price range
+        return price > 0 && price <= 999999.99m; 
     }
 
     public bool IsValidReleaseYear(int year)
     {
         var currentYear = DateTime.UtcNow.Year;
-        return year >= 1900 && year <= currentYear + 1; // Allow future releases up to next year
+        return year >= 1900 && year <= currentYear + 1;
     }
 }

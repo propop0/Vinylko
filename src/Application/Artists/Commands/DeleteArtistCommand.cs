@@ -22,7 +22,6 @@ namespace Application.Artists.Commands
 
         public async Task Handle(DeleteArtistCommand request, CancellationToken cancellationToken)
         {
-            // Check if artist has vinyl records before attempting deletion
             var hasVinylRecords = await _artistRepository.HasVinylRecordsAsync(request.Id, cancellationToken);
             if (hasVinylRecords)
             {

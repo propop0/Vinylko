@@ -15,18 +15,25 @@ public static class ConfigurePersistenceServices
 {
     public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection"); 
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-        dataSourceBuilder.EnableDynamicJson();
-        var dataSource = dataSourceBuilder.Build();
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            dataSourceBuilder.EnableDynamicJson();
+            var dataSource = dataSourceBuilder.Build();
 
-        services.AddDbContext<ApplicationDbContext>(options => options
-            .UseNpgsql( 
-                dataSource,
-                builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
-            .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+            services.AddDbContext<ApplicationDbContext>(options => options
+                .UseNpgsql( 
+                    dataSource,
+                    builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+                .ConfigureWarnings(w => w
+                    .Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)
+                    .Ignore(RelationalEventId.PendingModelChangesWarning)));
 
-        services.AddScoped<ApplicationDbContextInitialiser>();
+            services.AddScoped<ApplicationDbContextInitialiser>();
+        }
+        
         services.AddRepositories();
     }
 

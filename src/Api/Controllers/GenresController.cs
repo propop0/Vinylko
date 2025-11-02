@@ -50,7 +50,6 @@ public class GenresController(IGenreQueries genreQueries, ISender sender) : Cont
         }
         catch (DbUpdateException ex)
         {
-            // Check if it's a unique constraint violation (duplicate key)
             if (ex.InnerException?.Message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true ||
                 ex.InnerException?.Message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) == true)
             {

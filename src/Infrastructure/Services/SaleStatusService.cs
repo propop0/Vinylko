@@ -15,8 +15,8 @@ public class SaleStatusService : ISaleStatusService
         return currentStatus switch
         {
             SaleStatus.Pending => newStatus == SaleStatus.Completed || newStatus == SaleStatus.Cancelled,
-            SaleStatus.Completed => false, // Completed sales cannot change status
-            SaleStatus.Cancelled => false, // Cancelled sales cannot change status
+            SaleStatus.Completed => false, 
+            SaleStatus.Cancelled => false,
             _ => false
         };
     }
@@ -26,8 +26,8 @@ public class SaleStatusService : ISaleStatusService
         return currentStatus switch
         {
             SaleStatus.Pending => SaleStatus.Completed,
-            SaleStatus.Completed => SaleStatus.Completed, // Already completed
-            SaleStatus.Cancelled => SaleStatus.Cancelled, // Already cancelled
+            SaleStatus.Completed => SaleStatus.Completed, 
+            SaleStatus.Cancelled => SaleStatus.Cancelled, 
             _ => SaleStatus.Pending
         };
     }

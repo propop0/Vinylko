@@ -22,7 +22,12 @@ namespace Application.VinylRecords.Commands
 
         public async Task Handle(DeleteVinylRecordCommand request, CancellationToken cancellationToken)
         {
-            // Check if vinyl record has sales before attempting deletion
+            var existing = await _vinylRecordRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (existing == null)
+            {
+                throw new InvalidOperationException("Vinyl record not found");
+            }
+
             var hasSales = await _vinylRecordRepository.HasSalesAsync(request.Id, cancellationToken);
             if (hasSales)
             {

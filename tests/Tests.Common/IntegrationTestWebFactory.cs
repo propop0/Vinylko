@@ -24,6 +24,7 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
         builder.ConfigureTestServices(services =>
         {
             RegisterDatabase(services);
@@ -53,7 +54,9 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
             .UseNpgsql(
                 dataSource,
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
-            .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+            .ConfigureWarnings(w => w
+                .Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)
+                .Ignore(RelationalEventId.PendingModelChangesWarning)));
     }
 
     public Task InitializeAsync()
@@ -64,8 +67,6 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
     protected override IHost CreateHost(IHostBuilder builder)
     {
         var host = base.CreateHost(builder);
-        
-        // Run migrations after host is created but before tests run
         using var scope = host.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         dbContext.Database.MigrateAsync().GetAwaiter().GetResult();

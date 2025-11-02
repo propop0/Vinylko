@@ -22,14 +22,12 @@ namespace Application.Genres.Commands
 
         public async Task Handle(DeleteGenreCommand request, CancellationToken cancellationToken)
         {
-            // Check if genre exists
             var existing = await _genreRepository.GetByIdAsync(request.Id, cancellationToken);
             if (existing is null)
             {
                 throw new InvalidOperationException("Genre not found");
             }
 
-            // Check if genre has vinyl records before attempting deletion
             var hasVinylRecords = await _genreRepository.HasVinylRecordsAsync(request.Id, cancellationToken);
             if (hasVinylRecords)
             {

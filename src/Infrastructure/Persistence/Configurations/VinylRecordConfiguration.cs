@@ -53,11 +53,10 @@ public class VinylRecordConfiguration : IEntityTypeConfiguration<VinylRecord>
             .HasConversion(new DateTimeUtcConverter())
             .IsRequired(false);
 
-        // Foreign key relationships with proper delete behavior
         builder.HasOne<Domain.Artists.Artist>()
             .WithMany()
             .HasForeignKey(x => x.ArtistId)
-            .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of artist if vinyl records exist
+            .OnDelete(DeleteBehavior.Restrict); 
 
         builder.HasIndex(x => x.Title);
         builder.HasIndex(x => x.Genre);

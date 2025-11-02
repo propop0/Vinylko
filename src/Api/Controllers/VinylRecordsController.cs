@@ -3,6 +3,8 @@ using Application.Common.Interfaces.Queries;
 using Application.VinylRecords.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Api.Controllers;
 
@@ -77,19 +79,44 @@ public class VinylRecordsController(IVinylRecordQueries vinylRecordQueries, ISen
     [HttpPost]
     public async Task<ActionResult<VinylRecordDto>> Create([FromBody] CreateVinylRecordDto dto, CancellationToken cancellationToken)
     {
-        var cmd = new CreateVinylRecordCommand
+        try
         {
-            Title = dto.Title,
-            Genre = dto.Genre,
-            ReleaseYear = dto.ReleaseYear,
-            ArtistId = dto.ArtistId,
-            LabelId = dto.LabelId,
-            Price = dto.Price,
-            Description = dto.Description
-        };
+            var cmd = new CreateVinylRecordCommand
+            {
+                Title = dto.Title,
+                Genre = dto.Genre,
+                ReleaseYear = dto.ReleaseYear,
+                ArtistId = dto.ArtistId,
+                LabelId = dto.LabelId,
+                Price = dto.Price,
+                Description = dto.Description
+            };
 
-        var created = await sender.Send(cmd, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, VinylRecordDto.FromDomainModel(created));
+            var created = await sender.Send(cmd, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, VinylRecordDto.FromDomainModel(created));
+        }
+        catch (DbUpdateException ex)
+        {
+            var isUniqueViolation = false;
+            
+            if (ex.InnerException is PostgresException pgEx)
+            {
+                isUniqueViolation = pgEx.SqlState == "23505";
+            }
+            else
+            {
+                var message = ex.InnerException?.Message ?? ex.Message;
+                isUniqueViolation = message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) ||
+                                   message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) ||
+                                   message.Contains("violates unique constraint", StringComparison.OrdinalIgnoreCase);
+            }
+            
+            if (isUniqueViolation)
+            {
+                return Conflict("A vinyl record with this title and artist already exists.");
+            }
+            throw;
+        }
     }
 
     [HttpPut("{id:guid}")]
@@ -114,6 +141,28 @@ public class VinylRecordsController(IVinylRecordQueries vinylRecordQueries, ISen
         {
             return NotFound();
         }
+        catch (DbUpdateException ex)
+        {
+            var isUniqueViolation = false;
+            
+            if (ex.InnerException is PostgresException pgEx)
+            {
+                isUniqueViolation = pgEx.SqlState == "23505";
+            }
+            else
+            {
+                var message = ex.InnerException?.Message ?? ex.Message;
+                isUniqueViolation = message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) ||
+                                   message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) ||
+                                   message.Contains("violates unique constraint", StringComparison.OrdinalIgnoreCase);
+            }
+            
+            if (isUniqueViolation)
+            {
+                return Conflict("A vinyl record with this title and artist already exists.");
+            }
+            throw;
+        }
     }
 
     [HttpPatch("{id:guid}/status")]
@@ -135,8 +184,19 @@ public class VinylRecordsController(IVinylRecordQueries vinylRecordQueries, ISen
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var cmd = new DeleteVinylRecordCommand { Id = id };
-        await sender.Send(cmd, cancellationToken);
-        return NoContent();
+        try
+        {
+            var cmd = new DeleteVinylRecordCommand { Id = id };
+            await sender.Send(cmd, cancellationToken);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("sales", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

@@ -54,11 +54,10 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .HasConversion(new DateTimeUtcConverter())
             .IsRequired(false);
 
-        // Foreign key relationship with proper delete behavior
         builder.HasOne<Domain.VinylRecords.VinylRecord>()
             .WithMany()
             .HasForeignKey(x => x.RecordId)
-            .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of vinyl record if sales exist
+            .OnDelete(DeleteBehavior.Restrict); 
 
         builder.HasIndex(x => x.SaleNumber).IsUnique();
         builder.HasIndex(x => x.RecordId);

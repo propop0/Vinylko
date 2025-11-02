@@ -296,9 +296,22 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         await Context.Sales.AddAsync(sale);
         await SaveChangesAsync();
 
-        // Act - Delete the vinyl record
+        // Act - Try to delete the vinyl record (should fail because sales exist)
         var deleteResponse = await Client.DeleteAsync($"/api/vinyl-records/{vinylRecord.Id}");
-        deleteResponse.IsSuccessStatusCode.Should().BeTrue();
+        
+        // Assert - Deletion should fail with BadRequest because sales prevent deletion
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        
+        // Verify that both vinyl record and sale still exist in the database
+        var vinylRecordExists = await Context.VinylRecords
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == vinylRecord.Id);
+        vinylRecordExists.Should().BeTrue();
+        
+        var saleExists = await Context.Sales
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == sale.Id);
+        saleExists.Should().BeTrue();
     }
 
     public async Task InitializeAsync()
