@@ -54,5 +54,9 @@ public static class ConfigurePersistenceServices
         services.AddScoped<SaleRepository>();
         services.AddScoped<ISaleRepository>(provider => provider.GetRequiredService<SaleRepository>());
         services.AddScoped<ISaleQueries>(provider => provider.GetRequiredService<SaleRepository>());
+
+        services.AddScoped<VinylRecordCommentRepository>();
+        services.AddScoped<IVinylRecordCommentRepository>(provider => provider.GetRequiredService<VinylRecordCommentRepository>());
+        services.AddScoped<IVinylRecordCommentQueries>(provider => provider.GetRequiredService<VinylRecordCommentRepository>());
     }
 }

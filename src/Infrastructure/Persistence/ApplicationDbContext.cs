@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Genre> Genres { get; init; } = null!;
     public DbSet<VinylRecord> VinylRecords { get; init; } = null!;
     public DbSet<Sale> Sales { get; init; } = null!;
+    public DbSet<VinylRecordComment> VinylRecordComments { get; init; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
