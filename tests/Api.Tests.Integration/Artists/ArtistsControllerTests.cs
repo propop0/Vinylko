@@ -226,7 +226,7 @@ public class ArtistsControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Check if artist already exists (in case of parallel test execution)
+        // перевірка чи вже існубть
         var exists = await Context.Artists.AnyAsync(x => x.Id == _firstTestArtist.Id);
         if (!exists)
         {
@@ -239,7 +239,7 @@ public class ArtistsControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         var artistIds = Context.Artists.Select(a => a.Id).ToList();
         
-        // Delete VinylRecords that reference these Artists
+        // видалити платівки артиста
         var vinylRecords = await Context.VinylRecords
             .Where(v => artistIds.Contains(v.ArtistId))
             .ToListAsync();
@@ -249,7 +249,7 @@ public class ArtistsControllerTests : BaseIntegrationTest, IAsyncLifetime
             await SaveChangesAsync();
         }
         
-        // Then delete Artists
+        // видалення артиста
         Context.Artists.RemoveRange(Context.Artists);
         await SaveChangesAsync();
     }

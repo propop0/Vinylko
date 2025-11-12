@@ -74,8 +74,8 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         // Arrange
         var request = new CreateGenreDto(
-            Name: string.Empty, // Invalid: empty name
-            Description: string.Empty // Invalid: empty description
+            Name: string.Empty, // помилка пусте ім'я
+            Description: string.Empty // помилка пустий опив
         );
 
         // Act
@@ -113,7 +113,7 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PutAsJsonAsync($"{BaseRoute}/{_firstTestGenre.Id}", request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відповіді шттп
         response.IsSuccessStatusCode.Should().BeTrue();
 
         // Assert - verify DB
@@ -129,7 +129,7 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         // Arrange
         var request = new UpdateGenreDto(
-            Name: string.Empty, // Invalid: empty name
+            Name: string.Empty, // помилка пусте ім'я
             Description: string.Empty
         );
 
@@ -176,10 +176,10 @@ public class GenresControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.DeleteAsync($"{BaseRoute}/{_firstTestGenre.Id}");
 
-        // Assert - verify response
+        // Assert - перевірка відповіді
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - verify deletion from DB
+        // Assert - перевірка видалення
         var genreExists = await Context.Genres
             .AnyAsync(x => x.Id == _firstTestGenre.Id);
         genreExists.Should().BeFalse();

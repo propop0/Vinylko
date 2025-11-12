@@ -78,11 +78,11 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відповіді шттп
         response.IsSuccessStatusCode.Should().BeTrue();
         var vinylRecordDto = await response.ToResponseModel<VinylRecordDto>();
 
-        // Assert - verify DB state
+        // Assert - перевірка статусу бд
         var dbVinylRecord = await Context.VinylRecords
             .AsNoTracking()
             .FirstAsync(x => x.Id == vinylRecordDto.Id);
@@ -97,12 +97,12 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         // Arrange
         var request = new CreateVinylRecordDto(
-            Title: string.Empty, // Invalid: empty title
-            Genre: string.Empty, // Invalid: empty genre
-            ReleaseYear: 1700, // Invalid: too old
+            Title: string.Empty, // помилка пуста назва
+            Genre: string.Empty, // помилка пустий жанр
+            ReleaseYear: 1700, // Invalid: помилка дата створення
             ArtistId: _testArtist.Id,
             LabelId: _testLabelId,
-            Price: -10m, // Invalid: negative price
+            Price: -10m, // помилка від'ємна ціна
             Description: null
         );
 
@@ -116,12 +116,12 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
     [Fact]
     public async Task ShouldNotCreateDuplicateVinylRecord()
     {
-        // Arrange - _firstTestVinylRecord already exists in DB (from InitializeAsync)
+        // Arrange - _firstTestVinylRecord вже є в бд (з InitializeAsync)
         var request = new CreateVinylRecordDto(
-            Title: _firstTestVinylRecord.Title, // Duplicate: same title
+            Title: _firstTestVinylRecord.Title, // дублікат, така ж назва
             Genre: "Different Genre",
             ReleaseYear: 2000,
-            ArtistId: _testArtist.Id, // Same artist - violates unique constraint on (Title, ArtistId)
+            ArtistId: _testArtist.Id, // той самий артист помилка
             LabelId: _testLabelId,
             Price: 50.00m,
             Description: "Different description"
@@ -149,10 +149,10 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PutAsJsonAsync($"{BaseRoute}/{_firstTestVinylRecord.Id}", request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка шттп
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        // Assert - verify DB
+        // Assert - перевірка бд
         var updatedVinylRecord = await Context.VinylRecords
             .AsNoTracking()
             .FirstAsync(x => x.Id == _firstTestVinylRecord.Id);
@@ -166,7 +166,7 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         // Arrange
         var request = new UpdateVinylRecordDto(
-            Title: string.Empty, // Invalid: empty title
+            Title: string.Empty, // помилка порожня назва
             Genre: string.Empty,
             ReleaseYear: 1700,
             Price: -10m,
@@ -219,10 +219,10 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.DeleteAsync($"{BaseRoute}/{_firstTestVinylRecord.Id}");
 
-        // Assert - verify response
+        // Assert - перевірка шттп статусу
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - verify deletion from DB
+        // Assert - підтвердження видалення з бд
         var vinylRecordExists = await Context.VinylRecords
             .AnyAsync(x => x.Id == _firstTestVinylRecord.Id);
         vinylRecordExists.Should().BeFalse();
@@ -250,10 +250,10 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestVinylRecord.Id}/status", request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відповіді шттп
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - verify DB
+        // Assert - перевірка бд
         var updatedVinylRecord = await Context.VinylRecords
             .AsNoTracking()
             .FirstAsync(x => x.Id == _firstTestVinylRecord.Id);
@@ -307,14 +307,14 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Check if artist already exists
+        // перевірка чи артист уже існує
         var artistExists = await Context.Artists.AnyAsync(x => x.Id == _testArtist.Id);
         if (!artistExists)
         {
             await Context.Artists.AddAsync(_testArtist);
         }
         
-        // Check if vinyl record already exists
+        // перевірка чи платівка вже існує
         var vinylRecordExists = await Context.VinylRecords.AnyAsync(x => x.Id == _firstTestVinylRecord.Id);
         if (!vinylRecordExists)
         {
@@ -326,10 +326,8 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        // Delete in correct order to avoid foreign key violations
         var vinylRecordIds = Context.VinylRecords.Select(v => v.Id).ToList();
         
-        // First delete Sales that reference these VinylRecords
         var sales = await Context.Sales
             .Where(s => vinylRecordIds.Contains(s.RecordId))
             .ToListAsync();
@@ -339,11 +337,9 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
             await SaveChangesAsync();
         }
         
-        // Then delete VinylRecords
         Context.VinylRecords.RemoveRange(Context.VinylRecords);
         await SaveChangesAsync();
         
-        // Finally delete Artists
         Context.Artists.RemoveRange(Context.Artists);
         await SaveChangesAsync();
     }

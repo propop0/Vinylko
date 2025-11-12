@@ -81,11 +81,11 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PostAsJsonAsync(BaseRoute, request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відповіді шттп
         response.IsSuccessStatusCode.Should().BeTrue();
         var saleDto = await response.ToResponseModel<SaleDto>();
 
-        // Assert - verify DB state
+        // Assert - перевірка стану бд
         var dbSale = await Context.Sales
             .AsNoTracking()
             .FirstAsync(x => x.Id == saleDto.Id);
@@ -101,11 +101,11 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         // Arrange
         var request = new CreateSaleDto(
-            RecordId: Guid.Empty, // Invalid: empty GUID
-            Price: -10m, // Invalid: negative price
+            RecordId: Guid.Empty, // помилка пусти гуід
+            Price: -10m, // помилка від'ємна ціна
             SaleDate: DateTime.UtcNow,
             CustomerName: null,
-            CustomerEmail: "invalid-email" // Invalid: not a valid email format
+            CustomerEmail: "invalid-email" // помилка неправильний формат пошти
         );
 
         // Act
@@ -123,14 +123,13 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
             .AsNoTracking()
             .FirstAsync(x => x.Id == _firstTestSale.Id);
         
-        // Assert - Verify unique constraint: each sale should have unique SaleNumber
         // Act
         var saleNumberCount = await Context.Sales
             .AsNoTracking()
             .Where(x => x.SaleNumber == existingSaleInDb.SaleNumber)
             .CountAsync();
         saleNumberCount.Should().Be(1);
-        
+        // Assert - Verify unique constraint: each sale should have unique SaleNumber  
     // тестування через апі напряму на дублікат SaleNumber неможливе, 
     // бо сейлнамбер генерується автоматично з часовим штампом і він унікальний 
     }
@@ -157,10 +156,10 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestSale.Id}/complete", request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відповіді шттп
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - verify DB
+        // Assert - перевірка бд
         var completedSale = await Context.Sales
             .AsNoTracking()
             .FirstAsync(x => x.Id == _firstTestSale.Id);
@@ -175,10 +174,10 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         var request = new HttpRequestMessage(HttpMethod.Patch, $"{BaseRoute}/{_firstTestSale.Id}/cancel");
         var response = await Client.SendAsync(request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відпоіді
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - verify DB
+        // Assert - перевірка бд
         var cancelledSale = await Context.Sales
             .AsNoTracking()
             .FirstAsync(x => x.Id == _firstTestSale.Id);
@@ -197,10 +196,10 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Act
         var response = await Client.PatchAsJsonAsync($"{BaseRoute}/{_firstTestSale.Id}/customer", request);
 
-        // Assert - verify HTTP response
+        // Assert - перевірка відповіді шттп
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Assert - verify DB
+        // Assert - перевірка бд
         var updatedSale = await Context.Sales
             .AsNoTracking()
             .FirstAsync(x => x.Id == _firstTestSale.Id);
@@ -296,13 +295,13 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         await Context.Sales.AddAsync(sale);
         await SaveChangesAsync();
 
-        // Act - Try to delete the vinyl record (should fail because sales exist)
+        // Act - спроба видалити платівку(провал бо існує продаж)
         var deleteResponse = await Client.DeleteAsync($"/api/vinyl-records/{vinylRecord.Id}");
         
-        // Assert - Deletion should fail with BadRequest because sales prevent deletion
+        // Assert - видалення провалиться з BadRequest бо продаж забороняє видалення
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         
-        // Verify that both vinyl record and sale still exist in the database
+        // перевірка чи платівка і продаж досі є в бд
         var vinylRecordExists = await Context.VinylRecords
             .AsNoTracking()
             .AnyAsync(x => x.Id == vinylRecord.Id);
@@ -316,21 +315,21 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Check if artist already exists
+        // перевірка чи артист уже існує
         var artistExists = await Context.Artists.AnyAsync(x => x.Id == _testArtist.Id);
         if (!artistExists)
         {
             await Context.Artists.AddAsync(_testArtist);
         }
         
-        // Check if vinyl record already exists
+        // перевірка чи платівка існує вже
         var vinylRecordExists = await Context.VinylRecords.AnyAsync(x => x.Id == _testVinylRecord.Id);
         if (!vinylRecordExists)
         {
             await Context.VinylRecords.AddAsync(_testVinylRecord);
         }
         
-        // Check if sale already exists
+        // Cперевірка чи продаж вже існує
         var saleExists = await Context.Sales.AnyAsync(x => x.Id == _firstTestSale.Id);
         if (!saleExists)
         {
@@ -342,7 +341,6 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        // Delete in correct order to avoid foreign key violations
         Context.Sales.RemoveRange(Context.Sales);
         await SaveChangesAsync();
         
