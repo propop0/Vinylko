@@ -1,13 +1,15 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common.Errors;
 using Application.Common.Interfaces.Repositories;
 using Domain.Artists;
+using ErrorOr;
 using MediatR;
+using Optional;
 
 namespace Application.Artists.Commands
 {
-    public record UpdateArtistCommand : IRequest<Artist>
+    public record UpdateArtistCommand : IRequest<ErrorOr<Artist>>
     {
         public required Guid Id { get; init; }
         public required string Name { get; init; }
@@ -17,7 +19,7 @@ namespace Application.Artists.Commands
         public string? Website { get; init; }
     }
 
-    public class UpdateArtistCommandHandler : IRequestHandler<UpdateArtistCommand, Artist>
+    public class UpdateArtistCommandHandler : IRequestHandler<UpdateArtistCommand, ErrorOr<Artist>>
     {
         private readonly IArtistRepository _artistRepository;
 
@@ -26,16 +28,19 @@ namespace Application.Artists.Commands
             _artistRepository = artistRepository;
         }
 
-        public async Task<Artist> Handle(UpdateArtistCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Artist>> Handle(UpdateArtistCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _artistRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (existing is null) throw new InvalidOperationException("Artist not found");
+            var existingOption = await _artistRepository.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (!existingOption.HasValue)
+            {
+                return Errors.Artist.NotFound(request.Id);
+            }
 
-            existing.UpdateDetails(request.Name, request.Bio, request.Country, request.BirthDate, request.Website);
-            await _artistRepository.UpdateAsync(existing, cancellationToken);
-            return existing;
+            var artist = existingOption.ValueOr(() => throw new InvalidOperationException());
+            artist.UpdateDetails(request.Name, request.Bio, request.Country, request.BirthDate, request.Website);
+            await _artistRepository.UpdateAsync(artist, cancellationToken);
+            return artist;
         }
     }
 }
-
-

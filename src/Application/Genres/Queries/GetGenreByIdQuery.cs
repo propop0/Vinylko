@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using Application.Common.Interfaces.Queries;
 using Domain.Genres;
 using MediatR;
+using Optional;
 
 namespace Application.Genres.Queries
 {
-    public record GetGenreByIdQuery(Guid Id) : IRequest<Genre?>;
+    public record GetGenreByIdQuery(Guid Id) : IRequest<Option<Genre>>;
 
-    public class GetGenreByIdQueryHandler : IRequestHandler<GetGenreByIdQuery, Genre?>
+    public class GetGenreByIdQueryHandler : IRequestHandler<GetGenreByIdQuery, Option<Genre>>
     {
         private readonly IGenreQueries _queries;
 
@@ -18,7 +19,7 @@ namespace Application.Genres.Queries
             _queries = queries;
         }
 
-        public Task<Genre?> Handle(GetGenreByIdQuery request, CancellationToken cancellationToken)
+        public Task<Option<Genre>> Handle(GetGenreByIdQuery request, CancellationToken cancellationToken)
         {
             return _queries.GetByIdAsync(request.Id, cancellationToken);
         }

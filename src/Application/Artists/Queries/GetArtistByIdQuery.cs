@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using Application.Common.Interfaces.Queries;
 using Domain.Artists;
 using MediatR;
+using Optional;
 
 namespace Application.Artists.Queries
 {
-    public record GetArtistByIdQuery(Guid Id) : IRequest<Artist?>;
+    public record GetArtistByIdQuery(Guid Id) : IRequest<Option<Artist>>;
 
-    public class GetArtistByIdQueryHandler : IRequestHandler<GetArtistByIdQuery, Artist?>
+    public class GetArtistByIdQueryHandler : IRequestHandler<GetArtistByIdQuery, Option<Artist>>
     {
         private readonly IArtistQueries _queries;
 
@@ -18,7 +19,7 @@ namespace Application.Artists.Queries
             _queries = queries;
         }
 
-        public Task<Artist?> Handle(GetArtistByIdQuery request, CancellationToken cancellationToken)
+        public Task<Option<Artist>> Handle(GetArtistByIdQuery request, CancellationToken cancellationToken)
         {
             return _queries.GetByIdAsync(request.Id, cancellationToken);
         }

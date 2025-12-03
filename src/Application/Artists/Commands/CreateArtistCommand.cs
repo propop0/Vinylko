@@ -1,13 +1,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common.Errors;
 using Application.Common.Interfaces.Repositories;
 using Domain.Artists;
+using ErrorOr;
 using MediatR;
 
 namespace Application.Artists.Commands
 {
-    public record CreateArtistCommand : IRequest<Artist>
+    public record CreateArtistCommand : IRequest<ErrorOr<Artist>>
     {
         public required string Name { get; init; }
         public required string Bio { get; init; }
@@ -16,7 +18,7 @@ namespace Application.Artists.Commands
         public string? Website { get; init; }
     }
 
-    public class CreateArtistCommandHandler : IRequestHandler<CreateArtistCommand, Artist>
+    public class CreateArtistCommandHandler : IRequestHandler<CreateArtistCommand, ErrorOr<Artist>>
     {
         private readonly IArtistRepository _artistRepository;
 
@@ -25,8 +27,14 @@ namespace Application.Artists.Commands
             _artistRepository = artistRepository;
         }
 
-        public async Task<Artist> Handle(CreateArtistCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Artist>> Handle(CreateArtistCommand request, CancellationToken cancellationToken)
         {
+            var exists = await _artistRepository.ExistsByNameAsync(request.Name, cancellationToken);
+            if (exists)
+            {
+                return Errors.Artist.AlreadyExists(request.Name);
+            }
+
             var artist = Artist.New(
                 Guid.NewGuid(),
                 request.Name,

@@ -2,6 +2,7 @@ using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.VinylRecords;
 using Microsoft.EntityFrameworkCore;
+using Optional;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -42,9 +43,10 @@ public class VinylRecordRepository : IVinylRecordRepository, IVinylRecordQueries
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<VinylRecord?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Option<VinylRecord>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _context.VinylRecords.FirstOrDefaultAsync(vr => vr.Id == id, cancellationToken);
+        var vinylRecord = await _context.VinylRecords.FirstOrDefaultAsync(vr => vr.Id == id, cancellationToken);
+        return vinylRecord == null ? Option.None<VinylRecord>() : Option.Some(vinylRecord);
     }
 
     public async Task UpdateAsync(VinylRecord entity, CancellationToken cancellationToken)
@@ -55,12 +57,7 @@ public class VinylRecordRepository : IVinylRecordRepository, IVinylRecordQueries
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        var hasSales = await _context.Sales.AnyAsync(s => s.RecordId == id, cancellationToken);
-        if (hasSales)
-        {
-            throw new InvalidOperationException("Cannot delete vinyl record. There are sales associated with this record.");
-        }
-
+        // Видалення дозволено навіть якщо є продажі - RecordId в продажах стане null через SetNull
         var existing = await _context.VinylRecords.FindAsync(new object[] { id }, cancellationToken);
         if (existing != null)
         {
@@ -108,6 +105,6 @@ public class VinylRecordRepository : IVinylRecordRepository, IVinylRecordQueries
 
     public async Task<bool> HasSalesAsync(Guid vinylRecordId, CancellationToken cancellationToken)
     {
-        return await _context.Sales.AnyAsync(s => s.RecordId == vinylRecordId, cancellationToken);
+        return await _context.Sales.AnyAsync(s => s.RecordId.HasValue && s.RecordId.Value == vinylRecordId, cancellationToken);
     }
 }

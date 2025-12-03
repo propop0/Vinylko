@@ -2,6 +2,7 @@ using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.VinylRecords;
 using Microsoft.EntityFrameworkCore;
+using Optional;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -37,9 +38,10 @@ public class VinylRecordCommentRepository : IVinylRecordCommentRepository, IViny
         }
     }
 
-    public async Task<VinylRecordComment?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Option<VinylRecordComment>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _context.VinylRecordComments.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        var comment = await _context.VinylRecordComments.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        return comment == null ? Option.None<VinylRecordComment>() : Option.Some(comment);
     }
 
     public async Task<IReadOnlyList<VinylRecordComment>> GetByVinylRecordIdAsync(Guid vinylRecordId, CancellationToken cancellationToken)

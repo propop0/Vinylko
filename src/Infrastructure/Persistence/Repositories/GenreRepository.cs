@@ -2,6 +2,7 @@ using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.Genres;
 using Microsoft.EntityFrameworkCore;
+using Optional;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -26,9 +27,10 @@ public class GenreRepository : IGenreRepository, IGenreQueries
         return await _context.Genres.AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    public async Task<Genre?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Option<Genre>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _context.Genres.FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
+        var genre = await _context.Genres.FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
+        return genre == null ? Option.None<Genre>() : Option.Some(genre);
     }
 
     public async Task UpdateAsync(Genre entity, CancellationToken cancellationToken)
@@ -59,11 +61,12 @@ public class GenreRepository : IGenreRepository, IGenreQueries
         return await _context.Genres.AnyAsync(g => g.Name == name, cancellationToken);
     }
 
-    public async Task<Genre?> GetByNameAsync(string name, CancellationToken cancellationToken)
+    public async Task<Option<Genre>> GetByNameAsync(string name, CancellationToken cancellationToken)
     {
-        return await _context.Genres
+        var genre = await _context.Genres
             .AsNoTracking()
             .FirstOrDefaultAsync(g => g.Name == name, cancellationToken);
+        return genre == null ? Option.None<Genre>() : Option.Some(genre);
     }
 
     public async Task<bool> HasVinylRecordsAsync(Guid genreId, CancellationToken cancellationToken)

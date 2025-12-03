@@ -2,6 +2,7 @@ using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.Artists;
 using Microsoft.EntityFrameworkCore;
+using Optional;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -26,9 +27,10 @@ public class ArtistRepository : IArtistRepository, IArtistQueries
         return await _context.Artists.AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    public async Task<Artist?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Option<Artist>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _context.Artists.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+        var artist = await _context.Artists.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+        return artist == null ? Option.None<Artist>() : Option.Some(artist);
     }
 
     public async Task UpdateAsync(Artist entity, CancellationToken cancellationToken)

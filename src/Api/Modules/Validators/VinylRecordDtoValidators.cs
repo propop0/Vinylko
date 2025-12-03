@@ -25,10 +25,6 @@ public class CreateVinylRecordDtoValidator : AbstractValidator<CreateVinylRecord
             .NotEmpty()
             .WithMessage("Artist ID is required");
 
-        RuleFor(x => x.LabelId)
-            .NotEmpty()
-            .WithMessage("Label ID is required");
-
         RuleFor(x => x.Price)
             .GreaterThan(0)
             .LessThanOrEqualTo(999999.99m)

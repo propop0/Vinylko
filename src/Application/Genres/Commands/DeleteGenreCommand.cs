@@ -1,17 +1,19 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common.Errors;
 using Application.Common.Interfaces.Repositories;
+using ErrorOr;
 using MediatR;
+using Optional;
 
 namespace Application.Genres.Commands
 {
-    public record DeleteGenreCommand : IRequest
+    public record DeleteGenreCommand : IRequest<ErrorOr<Success>>
     {
         public required Guid Id { get; init; }
     }
 
-    public class DeleteGenreCommandHandler : IRequestHandler<DeleteGenreCommand>
+    public class DeleteGenreCommandHandler : IRequestHandler<DeleteGenreCommand, ErrorOr<Success>>
     {
         private readonly IGenreRepository _genreRepository;
 
@@ -20,23 +22,22 @@ namespace Application.Genres.Commands
             _genreRepository = genreRepository;
         }
 
-        public async Task Handle(DeleteGenreCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Success>> Handle(DeleteGenreCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _genreRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (existing is null)
+            var existingOption = await _genreRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (!existingOption.HasValue)
             {
-                throw new InvalidOperationException("Genre not found");
+                return Errors.Genre.NotFound(request.Id);
             }
 
             var hasVinylRecords = await _genreRepository.HasVinylRecordsAsync(request.Id, cancellationToken);
             if (hasVinylRecords)
             {
-                throw new InvalidOperationException("Cannot delete genre. There are vinyl records associated with this genre. Please delete or reassign the vinyl records first.");
+                return Errors.Genre.HasVinylRecords(request.Id);
             }
 
             await _genreRepository.DeleteAsync(request.Id, cancellationToken);
+            return Result.Success;
         }
     }
 }
-
-

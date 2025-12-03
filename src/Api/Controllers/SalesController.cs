@@ -1,8 +1,10 @@
 using Api.Dtos;
 using Application.Common.Interfaces.Queries;
 using Application.Sales.Commands;
+using ErrorOr;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Optional;
 
 namespace Api.Controllers;
 
@@ -20,9 +22,10 @@ public class SalesController(ISaleQueries saleQueries, ISender sender) : Control
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<SaleDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var item = await saleQueries.GetByIdAsync(id, cancellationToken);
-        if (item is null) return NotFound();
-        return SaleDto.FromDomainModel(item);
+        var itemOption = await saleQueries.GetByIdAsync(id, cancellationToken);
+        return itemOption.Match<ActionResult<SaleDto>>(
+            some: sale => SaleDto.FromDomainModel(sale),
+            none: () => NotFound());
     }
 
     [HttpGet("record/{recordId:guid}")]
@@ -82,8 +85,15 @@ public class SalesController(ISaleQueries saleQueries, ISender sender) : Control
             CustomerEmail = dto.CustomerEmail
         };
 
-        var created = await sender.Send(cmd, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, SaleDto.FromDomainModel(created));
+        var result = await sender.Send(cmd, cancellationToken);
+        return result.Match<ActionResult<SaleDto>>(
+            value => CreatedAtAction(nameof(GetById), new { id = value.Id }, SaleDto.FromDomainModel(value)),
+            errors => errors.First().Type switch
+            {
+                ErrorType.NotFound => NotFound(),
+                ErrorType.Conflict => Conflict(errors),
+                _ => BadRequest(errors)
+            });
     }
 
     [HttpPatch("{id:guid}/complete")]
@@ -95,16 +105,30 @@ public class SalesController(ISaleQueries saleQueries, ISender sender) : Control
             Notes = dto.Notes
         };
 
-        await sender.Send(cmd, cancellationToken);
-        return NoContent();
+        var result = await sender.Send(cmd, cancellationToken);
+        return result.Match<IActionResult>(
+            _ => NoContent(),
+            errors => errors.First().Type switch
+            {
+                ErrorType.NotFound => NotFound(),
+                ErrorType.Validation => BadRequest(errors),
+                _ => BadRequest(errors)
+            });
     }
 
     [HttpPatch("{id:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
     {
         var cmd = new CancelSaleCommand { Id = id };
-        await sender.Send(cmd, cancellationToken);
-        return NoContent();
+        var result = await sender.Send(cmd, cancellationToken);
+        return result.Match<IActionResult>(
+            _ => NoContent(),
+            errors => errors.First().Type switch
+            {
+                ErrorType.NotFound => NotFound(),
+                ErrorType.Validation => BadRequest(errors),
+                _ => BadRequest(errors)
+            });
     }
 
     [HttpPatch("{id:guid}/customer")]
@@ -117,7 +141,13 @@ public class SalesController(ISaleQueries saleQueries, ISender sender) : Control
             CustomerEmail = dto.CustomerEmail
         };
 
-        await sender.Send(cmd, cancellationToken);
-        return NoContent();
+        var result = await sender.Send(cmd, cancellationToken);
+        return result.Match<IActionResult>(
+            _ => NoContent(),
+            errors => errors.First().Type switch
+            {
+                ErrorType.NotFound => NotFound(),
+                _ => BadRequest(errors)
+            });
     }
 }

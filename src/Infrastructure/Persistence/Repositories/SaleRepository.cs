@@ -2,6 +2,7 @@ using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.Sales;
 using Microsoft.EntityFrameworkCore;
+using Optional;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -30,13 +31,14 @@ public class SaleRepository : ISaleRepository, ISaleQueries
     {
         return await _context.Sales
             .AsNoTracking()
-            .Where(s => s.RecordId == recordId)
+            .Where(s => s.RecordId.HasValue && s.RecordId.Value == recordId)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Sale?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Option<Sale>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _context.Sales.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        var sale = await _context.Sales.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        return sale == null ? Option.None<Sale>() : Option.Some(sale);
     }
 
     public async Task UpdateAsync(Sale entity, CancellationToken cancellationToken)

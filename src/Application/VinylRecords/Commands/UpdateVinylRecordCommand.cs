@@ -1,13 +1,15 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common.Errors;
 using Application.Common.Interfaces.Repositories;
 using Domain.VinylRecords;
+using ErrorOr;
 using MediatR;
+using Optional;
 
 namespace Application.VinylRecords.Commands
 {
-    public record UpdateVinylRecordCommand : IRequest<VinylRecord>
+    public record UpdateVinylRecordCommand : IRequest<ErrorOr<VinylRecord>>
     {
         public required Guid Id { get; init; }
         public required string Title { get; init; }
@@ -17,7 +19,7 @@ namespace Application.VinylRecords.Commands
         public string? Description { get; init; }
     }
 
-    public class UpdateVinylRecordCommandHandler : IRequestHandler<UpdateVinylRecordCommand, VinylRecord>
+    public class UpdateVinylRecordCommandHandler : IRequestHandler<UpdateVinylRecordCommand, ErrorOr<VinylRecord>>
     {
         private readonly IVinylRecordRepository _vinylRecordRepository;
 
@@ -26,16 +28,19 @@ namespace Application.VinylRecords.Commands
             _vinylRecordRepository = vinylRecordRepository;
         }
 
-        public async Task<VinylRecord> Handle(UpdateVinylRecordCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<VinylRecord>> Handle(UpdateVinylRecordCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _vinylRecordRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (existing is null) throw new InvalidOperationException("Vinyl record not found");
+            var existingOption = await _vinylRecordRepository.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (!existingOption.HasValue)
+            {
+                return Errors.VinylRecord.NotFound(request.Id);
+            }
 
-            existing.UpdateDetails(request.Title, request.Genre, request.ReleaseYear, request.Price, request.Description);
-            await _vinylRecordRepository.UpdateAsync(existing, cancellationToken);
-            return existing;
+            var vinylRecord = existingOption.ValueOr(() => throw new InvalidOperationException());
+            vinylRecord.UpdateDetails(request.Title, request.Genre, request.ReleaseYear, request.Price, request.Description);
+            await _vinylRecordRepository.UpdateAsync(vinylRecord, cancellationToken);
+            return vinylRecord;
         }
     }
 }
-
-

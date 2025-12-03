@@ -1,17 +1,19 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common.Errors;
 using Application.Common.Interfaces.Repositories;
+using ErrorOr;
 using MediatR;
+using Optional;
 
 namespace Application.VinylRecords.Commands
 {
-    public record DeleteVinylRecordCommand : IRequest
+    public record DeleteVinylRecordCommand : IRequest<ErrorOr<Success>>
     {
         public required Guid Id { get; init; }
     }
 
-    public class DeleteVinylRecordCommandHandler : IRequestHandler<DeleteVinylRecordCommand>
+    public class DeleteVinylRecordCommandHandler : IRequestHandler<DeleteVinylRecordCommand, ErrorOr<Success>>
     {
         private readonly IVinylRecordRepository _vinylRecordRepository;
 
@@ -20,23 +22,17 @@ namespace Application.VinylRecords.Commands
             _vinylRecordRepository = vinylRecordRepository;
         }
 
-        public async Task Handle(DeleteVinylRecordCommand request, CancellationToken cancellationToken)
+        public async Task<ErrorOr<Success>> Handle(DeleteVinylRecordCommand request, CancellationToken cancellationToken)
         {
-            var existing = await _vinylRecordRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (existing == null)
+            var existingOption = await _vinylRecordRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (!existingOption.HasValue)
             {
-                throw new InvalidOperationException("Vinyl record not found");
+                return Errors.VinylRecord.NotFound(request.Id);
             }
 
-            var hasSales = await _vinylRecordRepository.HasSalesAsync(request.Id, cancellationToken);
-            if (hasSales)
-            {
-                throw new InvalidOperationException("Cannot delete vinyl record. There are sales associated with this record. Sales history must be preserved.");
-            }
-
+            // Видалення дозволено навіть якщо є продажі - RecordId в продажах стане null через SetNull
             await _vinylRecordRepository.DeleteAsync(request.Id, cancellationToken);
+            return Result.Success;
         }
     }
 }
-
-

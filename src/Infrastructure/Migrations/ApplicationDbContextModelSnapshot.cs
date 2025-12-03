@@ -22,6 +22,28 @@ namespace Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.ArtistGenres.ArtistGenre", b =>
+                {
+                    b.Property<Guid>("ArtistId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("timezone('utc', now())");
+
+                    b.HasKey("ArtistId", "GenreId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("artist_genres", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Artists.Artist", b =>
                 {
                     b.Property<Guid>("Id")
@@ -99,6 +121,9 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ArtistName")
+                        .HasColumnType("varchar(200)");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -116,8 +141,11 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<Guid>("RecordId")
+                    b.Property<Guid?>("RecordId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("RecordTitle")
+                        .HasColumnType("varchar(300)");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("timestamp with time zone");
@@ -149,6 +177,40 @@ namespace Infrastructure.Migrations
                     b.ToTable("sales", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.VinylRecords.RecordReleaseType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("timezone('utc', now())");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VinylRecordId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("VinylRecordId")
+                        .IsUnique();
+
+                    b.ToTable("record_release_types", (string)null);
+                });
+
             modelBuilder.Entity("Domain.VinylRecords.VinylRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -169,9 +231,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Genre")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
-
-                    b.Property<Guid>("LabelId")
-                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
@@ -195,8 +254,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ArtistId");
 
                     b.HasIndex("Genre");
-
-                    b.HasIndex("LabelId");
 
                     b.HasIndex("ReleaseYear");
 
@@ -240,12 +297,35 @@ namespace Infrastructure.Migrations
                     b.ToTable("vinyl_record_comments", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.ArtistGenres.ArtistGenre", b =>
+                {
+                    b.HasOne("Domain.Artists.Artist", null)
+                        .WithMany()
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Genres.Genre", null)
+                        .WithMany()
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Sales.Sale", b =>
                 {
                     b.HasOne("Domain.VinylRecords.VinylRecord", null)
                         .WithMany()
                         .HasForeignKey("RecordId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Domain.VinylRecords.RecordReleaseType", b =>
+                {
+                    b.HasOne("Domain.VinylRecords.VinylRecord", null)
+                        .WithOne()
+                        .HasForeignKey("Domain.VinylRecords.RecordReleaseType", "VinylRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

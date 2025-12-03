@@ -18,9 +18,6 @@ namespace Application.VinylRecords.Commands
             RuleFor(x => x.ArtistId)
                 .NotEqual(Guid.Empty);
 
-            RuleFor(x => x.LabelId)
-                .NotEqual(Guid.Empty);
-
             RuleFor(x => x.ReleaseYear)
                 .InclusiveBetween(1900, DateTime.UtcNow.Year);
 

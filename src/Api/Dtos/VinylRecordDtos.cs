@@ -9,7 +9,6 @@ public record VinylRecordDto(
     int ReleaseYear,
     string Status,
     Guid ArtistId,
-    Guid LabelId,
     decimal Price,
     string? Description,
     DateTime CreatedAt,
@@ -23,7 +22,6 @@ public record VinylRecordDto(
             vinylRecord.ReleaseYear,
             vinylRecord.Status.ToString(),
             vinylRecord.ArtistId,
-            vinylRecord.LabelId,
             vinylRecord.Price,
             vinylRecord.Description,
             vinylRecord.CreatedAt,
@@ -35,7 +33,6 @@ public record CreateVinylRecordDto(
     string Genre,
     int ReleaseYear,
     Guid ArtistId,
-    Guid LabelId,
     decimal Price,
     string? Description = null);
 

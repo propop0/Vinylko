@@ -19,14 +19,12 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
     private readonly Artist _testArtist;
     private readonly VinylRecord _firstTestVinylRecord;
     private readonly VinylRecord _secondTestVinylRecord;
-    private readonly Guid _testLabelId;
 
     public VinylRecordsControllerTests(IntegrationTestWebFactory factory) : base(factory)
     {
         _testArtist = ArtistData.FirstArtist();
-        _testLabelId = Guid.NewGuid();
-        _firstTestVinylRecord = VinylRecordData.FirstVinylRecord(_testArtist.Id, _testLabelId);
-        _secondTestVinylRecord = VinylRecordData.SecondVinylRecord(_testArtist.Id, _testLabelId);
+        _firstTestVinylRecord = VinylRecordData.FirstVinylRecord(_testArtist.Id);
+        _secondTestVinylRecord = VinylRecordData.SecondVinylRecord(_testArtist.Id);
     }
 
     [Fact]
@@ -70,7 +68,6 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
             Genre: _secondTestVinylRecord.Genre,
             ReleaseYear: _secondTestVinylRecord.ReleaseYear,
             ArtistId: _testArtist.Id,
-            LabelId: _testLabelId,
             Price: _secondTestVinylRecord.Price,
             Description: _secondTestVinylRecord.Description
         );
@@ -101,7 +98,6 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
             Genre: string.Empty, // помилка пустий жанр
             ReleaseYear: 1700, // Invalid: помилка дата створення
             ArtistId: _testArtist.Id,
-            LabelId: _testLabelId,
             Price: -10m, // помилка від'ємна ціна
             Description: null
         );
@@ -122,7 +118,6 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
             Genre: "Different Genre",
             ReleaseYear: 2000,
             ArtistId: _testArtist.Id, // той самий артист помилка
-            LabelId: _testLabelId,
             Price: 50.00m,
             Description: "Different description"
         );
@@ -329,7 +324,7 @@ public class VinylRecordsControllerTests : BaseIntegrationTest, IAsyncLifetime
         var vinylRecordIds = Context.VinylRecords.Select(v => v.Id).ToList();
         
         var sales = await Context.Sales
-            .Where(s => vinylRecordIds.Contains(s.RecordId))
+            .Where(s => s.RecordId.HasValue && vinylRecordIds.Contains(s.RecordId.Value))
             .ToListAsync();
         if (sales.Any())
         {

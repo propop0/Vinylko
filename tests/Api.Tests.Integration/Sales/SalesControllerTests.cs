@@ -23,13 +23,11 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
     private readonly VinylRecord _testVinylRecord;
     private readonly Sale _firstTestSale;
     private readonly Sale _secondTestSale;
-    private readonly Guid _testLabelId;
 
     public SalesControllerTests(IntegrationTestWebFactory factory) : base(factory)
     {
         _testArtist = ArtistData.FirstArtist();
-        _testLabelId = Guid.NewGuid();
-        _testVinylRecord = VinylRecordData.FirstVinylRecord(_testArtist.Id, _testLabelId);
+        _testVinylRecord = VinylRecordData.FirstVinylRecord(_testArtist.Id);
         _firstTestSale = SaleData.FirstSale(_testVinylRecord.Id);
         _secondTestSale = SaleData.SecondSale(_testVinylRecord.Id);
     }
@@ -287,7 +285,7 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task ShouldHandleCascadeDelete()
     {
         // Arrange - Create a sale for a vinyl record
-        var vinylRecord = VinylRecordData.ThirdVinylRecord(_testArtist.Id, _testLabelId);
+        var vinylRecord = VinylRecordData.ThirdVinylRecord(_testArtist.Id);
         await Context.VinylRecords.AddAsync(vinylRecord);
         await SaveChangesAsync();
 
@@ -295,22 +293,29 @@ public class SalesControllerTests : BaseIntegrationTest, IAsyncLifetime
         await Context.Sales.AddAsync(sale);
         await SaveChangesAsync();
 
-        // Act - спроба видалити платівку(провал бо існує продаж)
+        // Act - видалення платівки (має пройти успішно, RecordId в продажі стане null)
         var deleteResponse = await Client.DeleteAsync($"/api/vinyl-records/{vinylRecord.Id}");
         
-        // Assert - видалення провалиться з BadRequest бо продаж забороняє видалення
-        deleteResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // Assert - видалення має пройти успішно
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
         
-        // перевірка чи платівка і продаж досі є в бд
+        // Перевірка - платівка видалена
         var vinylRecordExists = await Context.VinylRecords
             .AsNoTracking()
             .AnyAsync(x => x.Id == vinylRecord.Id);
-        vinylRecordExists.Should().BeTrue();
+        vinylRecordExists.Should().BeFalse();
         
+        // Перевірка - продаж залишився в базі
         var saleExists = await Context.Sales
             .AsNoTracking()
             .AnyAsync(x => x.Id == sale.Id);
         saleExists.Should().BeTrue();
+        
+        // Перевірка - посилання на платівку в продажі стало null
+        var updatedSale = await Context.Sales
+            .AsNoTracking()
+            .FirstAsync(x => x.Id == sale.Id);
+        updatedSale.RecordId.Should().BeNull();
     }
 
     public async Task InitializeAsync()

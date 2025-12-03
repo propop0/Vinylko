@@ -4,7 +4,9 @@ public class Sale
 {
     public Guid Id { get; }
     public string SaleNumber { get; private set; }
-    public Guid RecordId { get; private set; }
+    public Guid? RecordId { get; private set; }
+    public string? RecordTitle { get; private set; }
+    public string? ArtistName { get; private set; }
     public decimal Price { get; private set; }
     public SaleStatus Status { get; private set; }
     public DateTime SaleDate { get; private set; }
@@ -17,7 +19,9 @@ public class Sale
     // приватний конструктор
     private Sale(Guid id,
         string saleNumber,
-        Guid recordId,
+        Guid? recordId,
+        string? recordTitle,
+        string? artistName,
         decimal price,
         SaleStatus status,
         DateTime saleDate,
@@ -30,6 +34,8 @@ public class Sale
         Id = id;
         SaleNumber = saleNumber;
         RecordId = recordId;
+        RecordTitle = recordTitle;
+        ArtistName = artistName;
         Price = price;
         Status = status;
         SaleDate = saleDate;
@@ -43,9 +49,11 @@ public class Sale
     public static Sale New(
         Guid id,
         string saleNumber,
-        Guid recordId,
+        Guid? recordId,
         decimal price,
         DateTime saleDate,
+        string? recordTitle = null,
+        string? artistName = null,
         string? customerName = null,
         string? customerEmail = null)
     {
@@ -53,6 +61,8 @@ public class Sale
             id,
             saleNumber,
             recordId,
+            recordTitle,
+            artistName,
             price,
             SaleStatus.Pending,
             saleDate,

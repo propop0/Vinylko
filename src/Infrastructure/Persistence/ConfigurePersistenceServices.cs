@@ -58,5 +58,11 @@ public static class ConfigurePersistenceServices
         services.AddScoped<VinylRecordCommentRepository>();
         services.AddScoped<IVinylRecordCommentRepository>(provider => provider.GetRequiredService<VinylRecordCommentRepository>());
         services.AddScoped<IVinylRecordCommentQueries>(provider => provider.GetRequiredService<VinylRecordCommentRepository>());
+
+        services.AddScoped<ArtistGenreRepository>();
+        services.AddScoped<IArtistGenreRepository>(provider => provider.GetRequiredService<ArtistGenreRepository>());
+
+        services.AddScoped<RecordReleaseTypeRepository>();
+        services.AddScoped<IRecordReleaseTypeRepository>(provider => provider.GetRequiredService<RecordReleaseTypeRepository>());
     }
 }

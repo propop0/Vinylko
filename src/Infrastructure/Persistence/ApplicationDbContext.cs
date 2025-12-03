@@ -1,4 +1,5 @@
 using System.Reflection;
+using Domain.ArtistGenres;
 using Domain.Artists;
 using Domain.Genres;
 using Domain.Sales;
@@ -18,6 +19,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<VinylRecord> VinylRecords { get; init; } = null!;
     public DbSet<Sale> Sales { get; init; } = null!;
     public DbSet<VinylRecordComment> VinylRecordComments { get; init; } = null!;
+    public DbSet<ArtistGenre> ArtistGenres { get; init; } = null!;
+    public DbSet<RecordReleaseType> RecordReleaseTypes { get; init; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

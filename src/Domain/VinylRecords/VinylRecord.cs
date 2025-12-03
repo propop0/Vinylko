@@ -8,7 +8,6 @@ public class VinylRecord
     public int ReleaseYear { get; private set; }
     public VinylRecordStatus Status { get; private set; }
     public Guid ArtistId { get; private set; }
-    public Guid LabelId { get; private set; }
     public decimal Price { get; private set; }
     public string? Description { get; private set; }
     public DateTime CreatedAt { get; }
@@ -21,7 +20,6 @@ public class VinylRecord
         int releaseYear,
         VinylRecordStatus status,
         Guid artistId,
-        Guid labelId,
         decimal price,
         string? description,
         DateTime createdAt,
@@ -33,7 +31,6 @@ public class VinylRecord
         ReleaseYear = releaseYear;
         Status = status;
         ArtistId = artistId;
-        LabelId = labelId;
         Price = price;
         Description = description;
         CreatedAt = createdAt;
@@ -46,7 +43,6 @@ public class VinylRecord
         string genre,
         int releaseYear,
         Guid artistId,
-        Guid labelId,
         decimal price,
         string? description = null)
     {
@@ -57,7 +53,6 @@ public class VinylRecord
             releaseYear,
             VinylRecordStatus.InStock,
             artistId,
-            labelId,
             price,
             description,
             DateTime.UtcNow,

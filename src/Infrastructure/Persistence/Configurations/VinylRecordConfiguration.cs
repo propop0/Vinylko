@@ -33,9 +33,6 @@ public class VinylRecordConfiguration : IEntityTypeConfiguration<VinylRecord>
         builder.Property(x => x.ArtistId)
             .IsRequired();
 
-        builder.Property(x => x.LabelId)
-            .IsRequired();
-
         builder.Property(x => x.Price)
             .HasColumnType("decimal(10,2)")
             .IsRequired();
@@ -63,7 +60,6 @@ public class VinylRecordConfiguration : IEntityTypeConfiguration<VinylRecord>
         builder.HasIndex(x => x.ReleaseYear);
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.ArtistId);
-        builder.HasIndex(x => x.LabelId);
         builder.HasIndex(x => new { x.Title, x.ArtistId }).IsUnique();
     }
 }

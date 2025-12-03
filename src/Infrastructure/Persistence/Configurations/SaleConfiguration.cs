@@ -18,7 +18,15 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .IsRequired();
 
         builder.Property(x => x.RecordId)
-            .IsRequired();
+            .IsRequired(false);
+
+        builder.Property(x => x.RecordTitle)
+            .HasColumnType("varchar(300)")
+            .IsRequired(false);
+
+        builder.Property(x => x.ArtistName)
+            .HasColumnType("varchar(200)")
+            .IsRequired(false);
 
         builder.Property(x => x.Price)
             .HasColumnType("decimal(10,2)")
@@ -57,7 +65,7 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.HasOne<Domain.VinylRecords.VinylRecord>()
             .WithMany()
             .HasForeignKey(x => x.RecordId)
-            .OnDelete(DeleteBehavior.Restrict); 
+            .OnDelete(DeleteBehavior.SetNull); 
 
         builder.HasIndex(x => x.SaleNumber).IsUnique();
         builder.HasIndex(x => x.RecordId);

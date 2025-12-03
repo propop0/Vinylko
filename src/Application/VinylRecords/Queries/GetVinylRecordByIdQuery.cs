@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using Application.Common.Interfaces.Queries;
 using Domain.VinylRecords;
 using MediatR;
+using Optional;
 
 namespace Application.VinylRecords.Queries
 {
-    public record GetVinylRecordByIdQuery(Guid Id) : IRequest<VinylRecord?>;
+    public record GetVinylRecordByIdQuery(Guid Id) : IRequest<Option<VinylRecord>>;
 
-    public class GetVinylRecordByIdQueryHandler : IRequestHandler<GetVinylRecordByIdQuery, VinylRecord?>
+    public class GetVinylRecordByIdQueryHandler : IRequestHandler<GetVinylRecordByIdQuery, Option<VinylRecord>>
     {
         private readonly IVinylRecordQueries _queries;
 
@@ -18,7 +19,7 @@ namespace Application.VinylRecords.Queries
             _queries = queries;
         }
 
-        public Task<VinylRecord?> Handle(GetVinylRecordByIdQuery request, CancellationToken cancellationToken)
+        public Task<Option<VinylRecord>> Handle(GetVinylRecordByIdQuery request, CancellationToken cancellationToken)
         {
             return _queries.GetByIdAsync(request.Id, cancellationToken);
         }

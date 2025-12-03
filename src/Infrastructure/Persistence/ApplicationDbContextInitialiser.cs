@@ -59,11 +59,11 @@ public class ApplicationDbContextInitialiser
             await _dbContext.SaveChangesAsync();
 
             // Seed Vinyl Records
-            var vinyl1 = VinylRecord.New(Guid.NewGuid(), "The Dark Side of the Moon", genre2.Id.ToString(), 1973, artist1.Id, Guid.NewGuid(), 29.99m, "The eighth studio album by Pink Floyd");
-            var vinyl2 = VinylRecord.New(Guid.NewGuid(), "Led Zeppelin IV", genre1.Id.ToString(), 1971, artist2.Id, Guid.NewGuid(), 34.99m, "The fourth studio album by Led Zeppelin");
-            var vinyl3 = VinylRecord.New(Guid.NewGuid(), "Abbey Road", genre3.Id.ToString(), 1969, artist3.Id, Guid.NewGuid(), 39.99m, "The twelfth studio album by The Beatles");
-            var vinyl4 = VinylRecord.New(Guid.NewGuid(), "Bohemian Rhapsody", genre1.Id.ToString(), 1975, artist4.Id, Guid.NewGuid(), 24.99m, "Single from A Night at the Opera album");
-            var vinyl5 = VinylRecord.New(Guid.NewGuid(), "Wish You Were Here", genre2.Id.ToString(), 1975, artist1.Id, Guid.NewGuid(), 27.99m, "The ninth studio album by Pink Floyd");
+            var vinyl1 = VinylRecord.New(Guid.NewGuid(), "The Dark Side of the Moon", genre2.Id.ToString(), 1973, artist1.Id, 29.99m, "The eighth studio album by Pink Floyd");
+            var vinyl2 = VinylRecord.New(Guid.NewGuid(), "Led Zeppelin IV", genre1.Id.ToString(), 1971, artist2.Id, 34.99m, "The fourth studio album by Led Zeppelin");
+            var vinyl3 = VinylRecord.New(Guid.NewGuid(), "Abbey Road", genre3.Id.ToString(), 1969, artist3.Id, 39.99m, "The twelfth studio album by The Beatles");
+            var vinyl4 = VinylRecord.New(Guid.NewGuid(), "Bohemian Rhapsody", genre1.Id.ToString(), 1975, artist4.Id, 24.99m, "Single from A Night at the Opera album");
+            var vinyl5 = VinylRecord.New(Guid.NewGuid(), "Wish You Were Here", genre2.Id.ToString(), 1975, artist1.Id, 27.99m, "The ninth studio album by Pink Floyd");
 
             await _dbContext.VinylRecords.AddRangeAsync(vinyl1, vinyl2, vinyl3, vinyl4, vinyl5);
             await _dbContext.SaveChangesAsync();
